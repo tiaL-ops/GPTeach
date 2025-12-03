@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChatView } from "./ChatView";
 import { callGPT3 } from "../utils/gpt3.js";
 import { Link } from "react-router-dom";
-import SplitPane from "react-split-pane";
+import Split from 'react-split';
 import "./style/ChatView.css";
 import { progressConversation } from "../utils/getStaticData.js";
 import { Constants } from "../utils/constants";
@@ -188,20 +188,13 @@ export const MultVerChatView = ({
 
 	return (
 		<>
-			<SplitPane split="vertical" defaultSize={550}>
-				<div className="square border-end">
-					<ContextView
-						studentBios={studentBios}
-						context={context}
-						title={title}
-						scenario={scenario}
-						learninggoal={learningGoals}
-						scenarioNum={scenarioNum}
-						nextLink={nextLink}
-						clickFunction={() => saveChat(Participant, scenarioNum, history)}
-						canMoveToNextScenario={canMoveToNextScenario()}
-					/>
-				</div>
+			<Split
+  sizes={[35, 65]}
+  minSize={300}
+  gutterSize={10}
+  direction="horizontal"
+  className="split-container"
+>
 
 				<div className="d-flex">
 					<div
@@ -250,17 +243,15 @@ export const MultVerChatView = ({
 							onMessageSend={
 								isBaseline ? addSelectedResponse : addWrittenResponse
 							}
-							undoMessage={undoMessage}
-							convoOptions={convoOptions}
-						/>
-					</div>
+						undoMessage={undoMessage}
+						convoOptions={convoOptions}
+					/>
 				</div>
-			</SplitPane>
-		</>
+			</div>
+		</Split>
+	</>
 	);
-};
-
-const ContextView = props => {
+};const ContextView = props => {
 	// Create the circles for the progress bar
 	let progressDots = [];
 	for (let i = 1; i <= Constants.NUM_SCENARIOS; i++) {

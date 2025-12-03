@@ -1,17 +1,18 @@
-const { Configuration, OpenAIApi } = require("openai");
+import OpenAI from 'openai';
 
 export async function callGPT3(myPrompt, onResponse) {
-	const configuration = new Configuration({
+	const openai = new OpenAI({
 		apiKey: process.env.REACT_APP_GPT_KEY,
+		// Warning: calling OpenAI from the browser exposes the key. Prefer server-side in production.
+		dangerouslyAllowBrowser: true,
 	});
-	const openai = new OpenAIApi(configuration);
 
 	console.log("what is my prompt??");
 	console.log(myPrompt);
 
-	openai
-		.createCompletion({
-			model: "text-davinci-003",
+	try {
+		const response = await openai.completions.create({
+			model: "gpt-3.5-turbo-instruct",
 			prompt: myPrompt,
 			temperature: 0.7,
 			max_tokens: 256,
@@ -19,22 +20,26 @@ export async function callGPT3(myPrompt, onResponse) {
 			frequency_penalty: 0,
 			presence_penalty: 0,
 			stop: ["TA:"],
-		})
-		.then(response => {
-			console.log("i'm here!");
-			console.log(response.data.choices[0].text);
-			if (response.data.choices[0].text.trim().replace(/[\n]/gm, "") === "") {
-				console.log("abort mission chief");
-				onResponse("hmmm");
-			} else if (
-				response.data.choices[0].text.trim().replace(/[\n]/gm, "") === "Sally:"
-			) {
-				console.log("abort mission chief #2");
-				onResponse("[no response ...]");
-			} else {
-				onResponse(response.data.choices[0].text);
-			}
 		});
+
+		console.log("i'm here!");
+		const text = response.choices?.[0]?.text ?? "";
+		console.log(text);
+		const trimmed = text.trim().replace(/[\n]/gm, "");
+
+		if (trimmed === "") {
+			console.log("abort mission chief");
+			onResponse("hmmm");
+		} else if (trimmed === "Sally:") {
+			console.log("abort mission chief #2");
+			onResponse("[no response ...]");
+		} else {
+			onResponse(text);
+		}
+	} catch (error) {
+		console.error("OpenAI API Error:", error);
+		onResponse("[Error: Could not get response]");
+	}
 }
 
 // need to have some logic for the case where we don't get any response back...
